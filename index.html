@@ -1564,33 +1564,13 @@
 
   <div class="app">
 
-    <!-- ================================================================ GATE -->
-    <div id="gate" style="display:none;">
-      <div class="gate-wrap">
-        <div class="gate-logo">📒</div>
-        <div class="gate-title serif">Catatan Keuangan</div>
-        <p class="gate-sub">Hubungkan ke backend Google Apps Script kamu untuk mulai mencatat keuangan dan melihat
-          laporan cerdas.</p>
-        <div class="card" style="width:100%;max-width:400px;">
-          <div class="field">
-            <label>Web App URL (Apps Script)</label>
-            <input type="url" id="gateUrlInput" placeholder="https://script.google.com/macros/s/…/exec">
-          </div>
-          <button class="btn btn-primary" onclick="saveApiUrl()">Hubungkan &amp; Mulai →</button>
-          <p style="font-size:12px;color:var(--ink-soft);margin-top:12px;text-align:center;line-height:1.6;">
-            URL bisa didapat dari menu <em>Deploy → Web App</em> di Google Apps Script.
-          </p>
-        </div>
-      </div>
-    </div>
-
     <!-- ================================================================ MAIN APP -->
-    <div id="mainApp" style="display:none;">
+    <div id="mainApp">
 
       <!-- HERO HEADER -->
       <header class="hero">
         <div class="hero-content">
-          <!-- Flex header top: Brand on left, Status & Settings cleanly grouped on right -->
+          <!-- Flex header top: Brand on left, Status & Refresh cleanly grouped on right -->
           <div class="hero-top">
             <div class="brand-mark">
               <div class="dot"></div>
@@ -1601,7 +1581,8 @@
                 <div class="status-dot"></div>
                 <span id="todayText"></span>
               </button>
-              <button class="settings-btn" title="Pengaturan URL API" onclick="gantiUrl()">⚙️</button>
+              <button class="settings-btn" title="Segarkan data dari spreadsheet"
+                onclick="refreshAll(); toast('Menyegarkan data dari spreadsheet…', 'success');">🔄</button>
             </div>
           </div>
 
@@ -2010,7 +1991,7 @@
     </div>
 
     <!-- ================================================================ BOTTOM NAVIGATION BAR -->
-    <nav class="tabbar" id="tabbar" style="display:none;">
+    <nav class="tabbar" id="tabbar">
       <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
         <span class="icon">🏠</span><span class="lbl">Beranda</span>
       </button>
@@ -2116,8 +2097,13 @@
   <script>
     /* ============================================================ CONFIG */
     const CONFIG = {
-      API_URL: localStorage.getItem('bukukas_api_url') || 'https://script.google.com/macros/s/AKfycbyiJsqKFuD17iQbtNXLTrwNoc3s-SET69Rlo8_c2565QoC_37DKFA83fg2CsefKk_vx/exec'
+      API_URL: 'https://script.google.com/macros/s/AKfycbwP2niKS94lqKaM6M0BHmzACQtg3Pd0DrVFaApnPn1ktOfdNf2Es-rqG5lxvKw4GFxZ/exec'
     };
+
+    // Pastikan penyimpanan lokal selalu menggunakan URL permanen ini
+    try {
+      localStorage.setItem('bukukas_api_url', CONFIG.API_URL);
+    } catch (e) { }
 
     const KATEGORI_ITEMS = {
       pengeluaran: [
@@ -2174,38 +2160,11 @@
         el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
       });
 
-      if (!CONFIG.API_URL) {
-        document.getElementById('gate').style.display = 'block';
-      } else {
-        bootApp();
-      }
+      bootApp();
       renderKategoriGrid();
     });
 
-    function saveApiUrl() {
-      const val = document.getElementById('gateUrlInput').value.trim();
-      if (!val.startsWith('https://script.google.com/')) {
-        toast('URL harus dari script.google.com', 'error');
-        return;
-      }
-      localStorage.setItem('bukukas_api_url', val);
-      CONFIG.API_URL = val;
-      document.getElementById('gate').style.display = 'none';
-      bootApp();
-    }
-
-    function gantiUrl() {
-      const url = prompt('Masukkan URL Web App Apps Script baru:', CONFIG.API_URL);
-      if (!url) return;
-      localStorage.setItem('bukukas_api_url', url.trim());
-      CONFIG.API_URL = url.trim();
-      toast('URL berhasil disimpan. Menyegarkan data…', 'success');
-      refreshAll();
-    }
-
     function bootApp() {
-      document.getElementById('mainApp').style.display = 'block';
-      document.getElementById('tabbar').style.display = 'flex';
       refreshAll();
     }
 
